@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Educations & Degrees{% endblock %}
+{% block active_degree %}active{% endblock %} {# Activates the 'Educations' link in the sidebar #}
+
+{% block extra_css %}
+<style>
+    /* Specific styles for the Degree cards, matching the image */
+    .degree-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        color: #2c3e50; /* Dark text for header */
+    }
+    .degree-header i {
+        font-size: 2.2rem; /* Larger icon */
+        color: #34495e;
+    }
+    .degree-header h2 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .degree-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Space between degree cards */
+        margin-top: 20px;
+    }
+
+    .degree-card {
+        background-color: #d4edda; /* Light green background from image */
+        border: 1px solid #c3e6cb; /* Slightly darker green border */
+        border-radius: 15px; /* Rounded corners */
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        color: #2d3436; /* Dark text for content */
+        position: relative; /* For positioning edit/delete buttons */
+    }
+
+    .degree-info {
+        margin-bottom: 15px;
+    }
+
+    .degree-info div {
+        margin-bottom: 8px;
+    }
+
+    .degree-info span:first-child {
+        font-weight: bold;
+        color: #28a745; /* Green color for labels like "Degree Name" */
+        margin-right: 5px;
+    }
+
+    .degree-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end; /* Align buttons to the right */
+    }
+
+    .edit-btn, .delete-btn {
+        padding: 8px 15px;
+        border-radius: 20px; /* Pill-shaped buttons */
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .edit-btn {
+        background-color: #007bff; /* Bootstrap primary blue */
+        color: white;
+        border: none;
+    }
+    .edit-btn:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+    .delete-btn {
+        background-color: #dc3545; /* Bootstrap danger red */
+        color: white;
+        border: none;
+    }
+    .delete-btn:hover {
+        background-color: #b02a37;
+        color: white;
+    }
+
+    /* Modal specific styling for forms */
+    .modal-content {
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+        background-color: #28a745; /* Green header for modal */
+        color: white;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    .modal-title {
+        font-weight: bold;
+    }
+    .modal-footer {
+        border-top: none;
+    }
+    .form-control {
+        border-radius: 8px;
+    }
+
+    /* Adjust the card padding for better visual alignment within content block */
+    .profile-content { /* This is the block from base.html where this content goes */
+        padding-top: 20px; /* Add some top padding to avoid hitting header */
+        padding-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="degree-header">
+    <i class="bi bi-mortarboard"></i>
+    <h2>Educations & Degrees</h2>
+    <button class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#degreeModal" onclick="clearFormAndSetAction('create')">
+        NEW +
+    </button>
+</div>
+
+<div class="degree-list-container">
+    {% if degrees %}
+        {% for degree in degrees %}
+        <div class="degree-card" id="degree-{{ degree.id }}">
+            <div class="row degree-info">
+                <div class="col-md-6">
+                    <span>Degree Name:</span> {{ degree.degree_name }}
+                </div>
+                <div class="col-md-6">
+                    <span>Institution:</span> {{ degree.university }}
+                </div>
+                <div class="col-md-6">
+                    <span>Passing Year:</span> {{ degree.passing_year|date:"Y" }} {# Format to display only year #}
+                </div>
+                <div class="col-md-6">
+                    <span>Result:</span> {{ degree.result }}
+                </div>
+            </div>
+            <div class="degree-actions">
+                <button class="edit-btn" onclick="editDegree({{ degree.id }})">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="delete-btn" onclick="deleteDegree({{ degree.id }})">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            No degrees added yet. Click "NEW +" to add your first degree.
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="degreeModal" tabindex="-1" aria-labelledby="degreeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="degreeModalLabel">Add/Edit Degree</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="degreeForm"> {# Removed method="post" and action to handle via JS #}
+                    {% csrf_token %}
+                    <input type="hidden" id="degreeId" name="degree_id"> {# Hidden field for ID #}
+                    <input type="hidden" id="formAction" name="action"> {# To distinguish create/edit on submission #}
+
+                    <div class="mb-3">
+                        <label for="id_degree_name" class="form-label">Degree Name</label>
+                        <input type="text" class="form-control" id="id_degree_name" name="degree_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_university" class="form-label">Institution</label>
+                        <input type="text" class="form-control" id="id_university" name="university" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_passing_year" class="form-label">Passing Year</label>
+                        <input type="date" class="form-control" id="id_passing_year" name="passing_year" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_result" class="form-label">Result</label>
+                        <input type="text" class="form-control" id="id_result" name="result" required>
+                    </div>
+              
+                    <input type="hidden" id="id_slug" name="slug"> {# Remove default value to ensure it's either set or empty #}
+
+                    <div class="modal-footer justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Save Degree</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Function to clear the form and set action for 'NEW +'
+    function clearFormAndSetAction(action) {
+        document.getElementById('degreeForm').reset();
+        document.getElementById('degreeModalLabel').innerText = 'Add New Degree';
+        document.getElementById('degreeId').value = ''; // Clear degree ID
+        document.getElementById('formAction').value = action; // 'create'
+        document.getElementById('id_slug').value = ''; // Clear slug or set a default if needed
+    }
+
+    // Function to populate form for 'Edit'
+    function editDegree(degreeId) {
+        // Fetch degree details via AJAX
+        fetch(`/degrees/${degreeId}/api/`) // This URL must match your urls.py for degree_detail_api
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('degreeId').value = data.id;
+                document.getElementById('id_degree_name').value = data.degree_name;
+                document.getElementById('id_university').value = data.university;
+                // For date input, the format needs to be YYYY-MM-DD
+                document.getElementById('id_passing_year').value = data.passing_year;
+                document.getElementById('id_result').value = data.result;
+                document.getElementById('id_slug').value = data.slug || ''; // Use existing slug or empty
+
+                document.getElementById('degreeModalLabel').innerText = 'Edit Degree';
+                document.getElementById('formAction').value = 'edit'; // 'edit'
+                new bootstrap.Modal(document.getElementById('degreeModal')).show();
+            })
+            .catch(error => console.error('Error fetching degree data:', error));
+    }
+
+    // Handle form submission (Create/Edit)
+    document.getElementById('degreeForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
+
+        const degreeId = document.getElementById('degreeId').value;
+        const formAction = document.getElementById('formAction').value;
+
+        let url = '';
+        let method = 'POST';
+
+        if (formAction === 'create') {
+            url = '/degrees/create/'; // Your create URL
+        } else if (formAction === 'edit' && degreeId) {
+            url = `/degrees/${degreeId}/edit/`; // Your edit URL
+        } else {
+            console.error('Invalid form action or missing ID for edit.');
+            alert('Error: Unable to submit form. Invalid action or ID.');
+            return;
+        }
+
+        const formData = new FormData(this); // Use FormData to easily get all form fields
+
+        // Send fetch request
+        fetch(url, {
+            method: method,
+            headers: {
+                'X-CSRFToken': csrftoken, // Send CSRF token in header
+            },
+            body: formData // FormData handles Content-Type automatically
+        })
+        .then(response => {
+            // Check for a successful response (e.g., 200 OK, 302 Found for redirect)
+            if (response.ok || response.redirected) {
+                // If the Django view redirects on success, follow it
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    
+                    location.reload(); // Reload the page to show updated list
+                }
+            } else {
+                // Handle non-OK responses (e.g., validation errors)
+                return response.json().then(errorData => {
+                    // Assuming Django returns JSON with errors for invalid forms
+                    alert('Submission Error: ' + JSON.stringify(errorData));
+                    console.error('Submission failed with errors:', errorData);
+                }).catch(() => {
+                    // If not JSON, just show generic error
+                    alert('An unexpected error occurred during submission.');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Network or Fetch Error:', error);
+            alert('A network error occurred. Please try again.');
+        });
+    });
+
+    // Handle Delete
+    function deleteDegree(degreeId) {
+        if (confirm('Are you sure you want to delete this degree? This action cannot be undone.')) {
+            fetch(`/degrees/${degreeId}/delete/`, { // Your delete URL
+                method: 'POST', // Use POST for deletion
+                headers: {
+                    'X-CSRFToken': csrftoken, // Send CSRF token
+                },
+            })
+            .then(response => {
+                if (response.ok || response.redirected) {
+                    if (response.redirected) {
+                        window.location.href = response.url; // Follow the redirect
+                    } else {
+                        location.reload(); // Reload if view returns 200 OK after delete
+                    }
+                } else {
+                    return response.json().then(errorData => {
+                        alert('Deletion Error: ' + JSON.stringify(errorData));
+                        console.error('Deletion failed with errors:', errorData);
+                    }).catch(() => {
+                        alert('An unexpected error occurred during deletion.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Network or Fetch Error:', error);
+                alert('A network error occurred. Please try again.');
+            });
+        }
+    }
+</script>
+{% endblock %}

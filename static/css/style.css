@@ -1,0 +1,37 @@
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.attendance-cell {
+    text-align: center;
+}
+
+.marks-input {
+    width: 80px;
+}
+
+.student-table td {
+    vertical-align: middle;
+}
+
+.alert {
+    margin-bottom: 20px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}

@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teacher Courses{% endblock %} {# Set the page title #}
+
+{% block extra_css %}
+<style>
+  /* Styles from your original file, now within the extra_css block */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+  }
+
+  /* The header styles below were for your custom header,
+     but base.html now provides the header.
+     If you want to apply specific styles *to the base.html header*
+     from this template, you'd need to target its elements.
+     For now, these specific header styles are commented out or removed
+     as they conflict with base.html's structure.
+  */
+  /*
+  .header {
+    background: linear-gradient(135deg, #00c851, #00a543);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+  }
+
+  .back-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .teacher-info h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .teacher-id {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+  }
+
+  .profile:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .profile-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  */
+
+  /* Remaining styles for the content area */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+  }
+
+  .course-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .course-card {
+    background: white;
+    border-radius: 25px;
+    padding: 20px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-card:nth-child(odd) {
+    background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+  }
+
+  .course-card:nth-child(even) {
+    background: linear-gradient(135deg, #81ecec, #00cec9);
+  }
+
+  .course-card:nth-child(3n) {
+    background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+  }
+
+  .course-card:nth-child(4n) {
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+  }
+
+  .course-info {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    flex: 1;
+  }
+
+  .course-number {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2d3436;
+  }
+
+  .course-details {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .detail-label {
+    font-size: 12px;
+    color: #636e72;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detail-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3436;
+  }
+
+  .total-section {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px 20px;
+    border-radius: 15px;
+    text-align: center;
+  }
+
+  .total-label {
+    font-size: 12px;
+    color: #2d3436;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .total-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2d3436;
+  }
+
+  .no-courses {
+    text-align: center;
+    padding: 50px;
+    color: #636e72;
+    font-size: 18px;
+  }
+
+  @media (max-width: 768px) {
+    .course-details {
+      gap: 15px;
+    }
+
+    .detail-item {
+      gap: 1px;
+    }
+
+    .detail-label {
+      font-size: 10px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+    }
+
+    .container {
+      padding: 20px 15px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .course-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 15px;
+    }
+
+    .course-info {
+      justify-content: center;
+    }
+
+    .total-section {
+      align-self: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  {# The base.html already provides a header with back arrow and profile link. #}
+  {# The teacher name and ID should ideally be passed in context from the view #}
+  {# and rendered in base.html's header if you want them there consistently. #}
+  {# For now, I'm removing the duplicate header from here. #}
+
+  <div class="container">
+    <div class="course-list">
+      {% if parts %}
+        {% for part in parts %}
+          <a href="{% url 'part_detail' part.id %}" class="text-decoration-none">
+            <div class="course-card" style="margin-top: 10px">
+              <div class="course-info">
+                <div class="course-number">Course: {{ forloop.counter }}</div>
+                <div class="course-details">
+                  <div class="detail-item">
+                    <div class="detail-label">Course Name</div>
+                    <div class="detail-value">{{ part.course.name }}</div>
+                  </div>
+
+                  <div class="detail-item">
+                    <div class="detail-label">Part</div>
+                    <div class="detail-value">{{ part.name }}</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Semester</div>
+                    <div class="detail-value">
+                      {{ part.course.semester.name|default:"N/A" }} {# Use part.course.semester.name #}
+                    </div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Year</div>
+                    <div class="detail-value">
+                      {{ part.course.semester.year|default:"N/A" }} {# Use part.course.semester.name #}
+                    </div>
+                  </div>
+                </div>
+                {% comment %} <div class="total-section">
+                  <div class="total-label">Total Students</div>
+                  {% for part in parts_student %}
+                  {{ part.total_students_in_semester|default:"0" }}
+                  {% endfor %}
+                </div> {% endcomment %}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="no-courses">No courses assigned to this teacher.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{# No extra JavaScript needed for this page, as history.back() is now in base.html #}

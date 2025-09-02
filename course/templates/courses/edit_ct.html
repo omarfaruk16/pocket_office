@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+
+{% block title %}Edit CT - {{ ct_obj.part.course.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Edit CT {{ ct_obj.ct_number }}</h1>
+        <p class="text-muted">{{ ct_obj.part.course.name }} - Part {{ ct_obj.part.name }}</p>
+        <a href="{% url 'part_detail' ct_obj.part.id %}" class="btn btn-secondary mb-3">← Back to Part</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>CT Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="ct_number" class="form-label">CT Number</label>
+                                <input type="text" class="form-control" id="ct_number" value="{{ ct_obj.ct_number }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.topic.id_for_label }}" class="form-label">Topic</label>
+                                {{ form.topic }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.total_marks.id_for_label }}" class="form-label">Total Marks</label>
+                                {{ form.total_marks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Student Marks</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.student_id }}</td>
+                                    <td>
+                                        <input type="number" name="marks_{{ student.id }}" class="form-control" min="0" step="0.01" value="{{ marks_data|get_item:student.id }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">Update CT</button>
+                <a href="{% url 'part_detail' ct_obj.part.id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

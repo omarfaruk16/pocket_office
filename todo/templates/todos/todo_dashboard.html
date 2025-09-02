@@ -1,0 +1,286 @@
+{% extends 'base.html' %} {# This line tells Django to inherit from base.html #}
+{% load static %} {# Keep this if you use static files specific to this template #}
+
+{% block title %}Teacher Todo Tasks{% endblock %} {# Set the title for this page #}
+
+{# You can add extra CSS here if needed, but for now, it's not strictly necessary #}
+{% block extra_css %}
+<style>
+    /* Any additional styles specific to this page can go here */
+    /* For example, if you want to override something from base.html */
+    .top-bar {
+        background-color: #28a745;
+        color: white;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        padding: 20px;
+    }
+    .top-bar h4, .top-bar span {
+        color: white;
+    }
+    .task-card {
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    .deadline-badge {
+        font-size: 0.9rem;
+        background-color: #ffc107;
+        color: black;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %} {# All the main content of your todo dashboard goes inside this block #}
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <form class="d-flex" id="searchForm">
+                <input class="form-control me-2" type="search" name="q" placeholder="Search tasks..." value="{{ query }}">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#todoModal">NEW +</button>
+        </div>
+
+        <h5>Your Ongoing Tasks</h5>
+        <div id="todoList">
+            {% for todo in todos %}
+                {% if not todo.is_completed %}
+                    <div class="card task-card p-3 bg-success-subtle" id="todo-{{ todo.id }}">
+                        <div class="deadline-badge">
+                            {% if todo.deadline %} 🗓️ {{ todo.deadline|date:"M d, Y H:i" }} {% else %} No deadline {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>{{ todo.title }}</h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editTodo({{ todo.id }})">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTodo({{ todo.id }})">Delete</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="toggleComplete({{ todo.id }})">Complete</button>
+                            </div>
+                        </div>
+                        <p class="mt-2">{{ todo.description }}</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <h5 class="mt-4">Completed Tasks</h5>
+        <div id="completedList">
+            {% for todo in todos %}
+                {% if todo.is_completed %}
+                    <div class="card task-card p-3 bg-light" id="todo-{{ todo.id }}">
+                        <div class="deadline-badge">
+                            {% if todo.deadline %} 🗓️ {{ todo.deadline|date:"M d, Y H:i" }} {% else %} No deadline {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5><del>{{ todo.title }}</del></h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTodo({{ todo.id }})">Delete</button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="toggleComplete({{ todo.id }})">Undo</button>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-muted"><del>{{ todo.description }}</del></p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="mt-4">
+            <nav>
+                <ul class="pagination">
+                    {% if todos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ todos.previous_page_number }}&q={{ query }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item disabled"><a class="page-link">Page {{ todos.number }} of {{ todos.paginator.num_pages }}</a></li>
+                    {% if todos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ todos.next_page_number }}&q={{ query }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <div class="modal fade" id="todoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Todo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="todoForm">
+                        {% csrf_token %}
+                        <input type="hidden" id="todoId" />
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Deadline</label>
+                            <input type="datetime-local" class="form-control" id="deadline" />
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %} {# All your JavaScript goes inside this block #}
+<script>
+    function csrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    document.getElementById('todoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('todoId').value;
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const deadline = document.getElementById('deadline').value; // This is already in correct format from input
+
+        // Determine if it's a create or edit action
+        const url = id ? `/todos/edit/${id}/` : '/todos/create/';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken(),
+            },
+            body: new URLSearchParams({
+                title: title,
+                description: description,
+                // Only send deadline if it's not empty, otherwise backend might fail parsing empty string
+                deadline: deadline || '', // Send empty string if no deadline is set
+            })
+        })
+        .then(response => {
+            // Check if the response is OK (2xx status) and then parse JSON
+            if (response.ok) {
+                return response.json();
+            }
+            // If response is not OK, try to parse JSON for error message, then throw
+            return response.json().then(errorData => {
+                throw new Error(errorData.message || 'Server error occurred.');
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload the page on success
+            } else {
+                alert(data.message || "Something went wrong."); // Display specific error message from server
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('An error occurred: ' + error.message); // Display network or parsing errors
+        });
+    });
+
+    function editTodo(id) {
+        fetch(`/todos/detail/${id}/`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('todoId').value = id;
+                document.getElementById('title').value = data.title;
+                document.getElementById('description').value = data.description;
+
+                // --- FIX FOR DATETIME-LOCAL INPUT ---
+                if (data.deadline) {
+                    // Create a Date object from the ISO string
+                    const date = new Date(data.deadline);
+
+                    // To ensure local time is used correctly and avoid timezone issues
+                    // Adjust for local timezone offset to get local time components
+                    const year = date.getFullYear();
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+                    const formattedDeadline = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    document.getElementById('deadline').value = formattedDeadline;
+                } else {
+                    document.getElementById('deadline').value = ''; // Clear if no deadline
+                }
+                // --- END FIX ---
+
+                // Show the modal after populating data
+                const todoModal = new bootstrap.Modal(document.getElementById('todoModal'));
+                todoModal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching todo details:', error);
+                alert('Could not load todo details. Please try again. Error: ' + error.message);
+            });
+    }
+
+    function deleteTodo(id) {
+        if (confirm('Delete this task?')) {
+            fetch(`/todos/delete/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken() },
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    // Attempt to read error message from response if not ok
+                    response.json().then(errorData => {
+                        alert(errorData.message || "Failed to delete task.");
+                    }).catch(() => {
+                        alert("Failed to delete task (unknown error).");
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting todo:', error);
+                alert('An error occurred during deletion: ' + error.message);
+            });
+        }
+    }
+
+    function toggleComplete(id) {
+        fetch(`/todos/toggle/${id}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken() },
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                // Attempt to read error message from response if not ok
+                response.json().then(errorData => {
+                    alert(errorData.message || "Failed to toggle task status.");
+                }).catch(() => {
+                    alert("Failed to toggle task status (unknown error).");
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling todo:', error);
+            alert('An error occurred during status toggle: ' + error.message);
+        });
+    }
+</script>
+{% endblock %}

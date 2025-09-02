@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+
+{% block title %}Create New Exam - {{ part.course.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Create New Exam</h1>
+        <p class="text-muted">{{ part.course.name }} - Part {{ part.name }}</p>
+        <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary mb-3">← Back to Part</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Exam Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.total_marks.id_for_label }}" class="form-label">Total Marks</label>
+                                {{ form.total_marks }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.topic.id_for_label }}" class="form-label">Topic</label>
+                        {{ form.topic }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Student Marks</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.student_id }}</td>
+                                    <td>
+                                        <input type="number" name="marks_{{ student.id }}" class="form-control" min="0" step="0.01" value="0">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-warning">Create Exam</button>
+                <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

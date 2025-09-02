@@ -1,0 +1,88 @@
+<!-- templates/students/student_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        h2 {
+            background-color: #e0e0ff;
+            padding: 10px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            width: 200px;
+        }
+
+        button {
+            padding: 5px 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <form method="get">
+        <input type="text" name="search" placeholder="Search by name or ID" value="{{ search_query }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <h2>Blank Semester</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Previous Semester</th>
+        </tr>
+        {% for student in blank_students %}
+        <tr>
+            <td>{{ student.name }}</td>
+            <td>{{ student.student_id }}</td>
+            <td>{{ student.previous_semester}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% for semester, students in students_by_semester.items %}
+    <h2>{{ semester.name }}</h2>
+    <a href="{% url 'assign_students' semester.id %}">Add</a>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Remove</th>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.name }}</td>
+            <td>{{ student.student_id }}</td>
+            <td>
+                <form method="post" action="{% url 'remove_student' student.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+
+</body>
+
+</html>

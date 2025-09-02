@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Class - {{ class_obj.part.course.name }}{% endblock %}
+
+{% block extra_css %}
+{# Add your custom CSS for attendance toggles here #}
+<style>
+    .attendance-toggle-circle {
+        width: 25px; /* Diameter of the circle */
+        height: 25px;
+        border-radius: 50%; /* Makes it a perfect circle */
+        cursor: pointer; /* Indicates it's clickable */
+        display: inline-block; /* Allows side-by-side if needed */
+        border: 3px solid #ccc; /* Subtle border */
+        transition: background-color 0.2s ease-in-out; /* Smooth color transition */
+        vertical-align: middle; /* Align with text if in line */
+    }
+
+    .attendance-toggle-circle.present {
+        background-color: #28a745; /* Green for Present (Bootstrap success green) */
+        border-color: #000000ff;
+    }
+
+    .attendance-toggle-circle.absent {
+        background-color: #dc3545; /* Red for Absent (Bootstrap danger red) */
+        border-color: #ffffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Edit Class {{ class_obj.class_number }}</h1>
+        <p class="text-muted">{{ class_obj.part.course.name }} - Part {{ class_obj.part.name }}</p>
+        <a href="{% url 'part_detail' class_obj.part.id %}" class="btn btn-secondary mb-3">← Back to Part</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Class Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="class_number" class="form-label">Class Number</label>
+                                <input type="text" class="form-control" id="class_number" value="{{ class_obj.class_number }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.topic.id_for_label }}" class="form-label">Topic</label>
+                        {{ form.topic }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Student Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.name }} </td>
+                                    <td>{{ student.student_id }}</td>
+                                    <td>
+                                        {# Hidden input to store the actual value (P or A) that gets submitted with the form #}
+                                        <input
+                                            type="hidden"
+                                            name="attendance_{{ student.id }}"
+                                            id="attendance_{{ student.id }}"
+                                            value="P" {# Default to Present #}
+                                        />
+
+                                        {# Clickable circle element #}
+                                        <div
+                                            class="attendance-toggle-circle present" {# Default to green (Present) #}
+                                            data-student-id="{{ student.id }}"
+                                        ></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Update Class</button>
+                <a href="{% url 'part_detail' class_obj.part.id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+{# Add your JavaScript for attendance toggles here #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const attendanceCircles = document.querySelectorAll('.attendance-toggle-circle');
+
+        attendanceCircles.forEach(circle => {
+            circle.addEventListener('click', function() {
+                const studentId = this.dataset.studentId; // Get the student ID from data attribute
+                const hiddenInput = document.getElementById(`attendance_${studentId}`);
+
+                // Toggle the classes and the hidden input's value
+                if (this.classList.contains('present')) {
+                    this.classList.remove('present');
+                    this.classList.add('absent');
+                    hiddenInput.value = 'A'; // Set value to Absent
+                } else {
+                    this.classList.remove('absent');
+                    this.classList.add('present');
+                    hiddenInput.value = 'P'; // Set value to Present
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

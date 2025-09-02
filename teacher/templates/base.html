@@ -1,0 +1,100 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Dashboard{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+  <style>
+    body { background-color: #f5f7fa; font-family: "Segoe UI", sans-serif; }
+    .header {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0 0 30px 30px;
+      box-shadow: 0 4px 20px rgba(46, 204, 113, 0.3);
+    }
+    .back-arrow { color: white; font-size: 24px; text-decoration: none; }
+    .profile-header { display: flex; align-items: center; gap: 15px; }
+    .header-profile-img {
+      width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; object-fit: cover;
+    }
+    .main-container { padding: 40px 20px; max-width: 1400px; margin: 0 auto; }
+    .content-wrapper { display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start; }
+    .sidebar-section h2 { font-size: 28px; font-weight: 700; color: #2c3e50; margin-bottom: 30px; }
+    .sidebar-menu {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      border-radius: 25px; padding: 30px;
+    }
+    .menu-item {
+      display: flex; align-items: center; gap: 15px;
+      padding: 18px 20px; color: white; text-decoration: none;
+      border-radius: 15px; margin-bottom: 8px;
+      font-size: 16px; font-weight: 500;
+    }
+    .menu-item:hover { background-color: rgba(255,255,255,0.2); transform: translateX(5px); color: white; }
+    .menu-item.active { background-color: rgba(255,255,255,0.25); }
+    .logout-item { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; }
+    .logout-item .menu-item { color: #ff6b6b; background-color: rgba(255,255,255,0.1); }
+    .logout-item .menu-item:hover { background-color: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <a href="javascript:history.back()" class="back-arrow"><i class="bi bi-arrow-left"></i></a>
+  <div class="profile-header">
+    <span>Profile</span>
+    <a href="{% url 'teacher_profile' %}"> <img src="{% if teacher.picture %}{{ teacher.picture.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Profile Picture" class="header-profile-img" /></a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-container">
+  <div class="content-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar-section">
+      <h2>My Profile</h2>
+      <div class="sidebar-menu">
+        <a href="{% url 'teacher_profile' %}" class="menu-item {% block active_personal %}{% endblock %}">
+          <i class="bi bi-person-circle"></i> Personal Information
+        </a>
+        <a href="{% url 'teacher_list' %}" class="menu-item">
+          <i class="bi bi-calendar-check"></i> All Teachers
+        </a>
+        <a href="{% url 'todo_dashboard' %}" class="menu-item">
+          <i class="bi bi-list-check"></i> TO-DO List
+        </a>
+        <a href="{% url 'degree_list' %}" class="menu-item {% block active_degree %}{% endblock %}">
+          <i class="bi bi-mortarboard"></i> Educations
+        </a>
+        <a href="{% url 'teacher_part_list' %}" class="menu-item">
+          <i class="bi bi-book"></i> Assigned Courses
+        </a>
+        <div class="logout-item">
+          <a href="{% url 'teacher_logout' %}" class="menu-item">
+            <i class="bi bi-box-arrow-right"></i> Log Out
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page-specific content -->
+    <div class="profile-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

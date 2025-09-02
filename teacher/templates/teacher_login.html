@@ -1,0 +1,462 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher Login</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-image: url("{% static 'img/Hero-bg.png' %}");
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .login-container {
+        background: linear-gradient(135deg, #2FCC71, #44a08d);
+        border-radius: 30px;
+        padding: 45px 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        max-width: 380px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .login-container::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(180deg);
+        }
+      }
+
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #ffffff;
+        margin: 0 auto 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 2;
+      }
+
+      .profile-avatar img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .profile-icon {
+        font-size: 50px;
+        color: #4ecdc4;
+      }
+
+      .login-title {
+        color: white;
+        font-size: 26px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 15px 22px;
+        border: none;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        color: #333;
+        outline: none;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .form-input:focus {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-input::placeholder {
+        color: #999;
+        font-size: 14px;
+      }
+
+      .login-btn {
+        background: white;
+        color: #4ecdc4;
+        border: none;
+        padding: 15px 35px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 18px 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 2;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .login-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        background: #f8f9fa;
+      }
+
+      .login-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .login-icon {
+        font-size: 16px;
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 25px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .footer-link {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        padding: 5px 0;
+      }
+
+      .footer-link:hover {
+        color: white;
+        text-decoration: underline;
+        transform: translateY(-1px);
+      }
+
+      .forgot-password {
+        color: #ff6b6b !important;
+      }
+
+      .registration {
+        color: rgba(255, 255, 255, 1) !important;
+      }
+
+      /* Error Styling */
+      .error {
+        color: #ff6b6b;
+        font-size: 12px;
+        margin-top: 5px;
+        text-align: left;
+        padding-left: 25px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .form-input.error-input {
+        border: 2px solid #ff6b6b;
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      /* Messages Styling */
+      .messages {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .alert {
+        padding: 12px 20px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        border: none;
+        font-size: 14px;
+      }
+
+      .alert-danger {
+        background: rgba(255, 107, 107, 0.9);
+        color: white;
+      }
+
+      .alert-success {
+        background: rgba(40, 167, 69, 0.9);
+        color: white;
+      }
+
+      .alert-info {
+        background: rgba(23, 162, 184, 0.9);
+        color: white;
+      }
+
+      .btn-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+
+      .btn-close:hover {
+        opacity: 1;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .login-container {
+          padding: 40px 30px;
+          margin: 10px;
+          border-radius: 25px;
+        }
+
+        .profile-avatar {
+          width: 100px;
+          height: 100px;
+          margin-bottom: 25px;
+        }
+
+        .profile-icon {
+          font-size: 50px;
+        }
+
+        .login-title {
+          font-size: 28px;
+          margin-bottom: 30px;
+        }
+
+        .form-input {
+          padding: 16px 20px;
+          font-size: 15px;
+        }
+
+        .login-btn {
+          padding: 16px 35px;
+          font-size: 16px;
+        }
+
+        .footer-links {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 15px;
+        }
+
+        .login-container {
+          padding: 35px 25px;
+        }
+
+        .profile-avatar {
+          width: 90px;
+          height: 90px;
+        }
+
+        .profile-icon {
+          font-size: 45px;
+        }
+
+        .login-title {
+          font-size: 24px;
+        }
+
+        .form-input {
+          padding: 14px 18px;
+          font-size: 14px;
+        }
+
+        .login-btn {
+          padding: 14px 30px;
+          font-size: 15px;
+        }
+      }
+
+      /* Loading Animation */
+      .login-btn.loading {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+
+      .login-btn.loading::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        border: 2px solid #4ecdc4;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="profile-avatar">
+        <div class="profile-icon">👨‍🏫</div>
+      </div>
+
+      <h1 class="login-title">Teacher Login</h1>
+
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            onclick="this.parentElement.style.display='none'"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" novalidate id="loginForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <input
+            type="email"
+            class="form-input {% if form.email.errors %}error-input{% endif %}"
+            placeholder="Enter your email"
+            name="{{ form.email.name }}"
+            id="{{ form.email.id_for_label }}"
+            value="{{ form.email.value|default:'' }}"
+            required
+          />
+          {% if form.email.errors %}
+          <div class="error">{{ form.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <input
+            type="password"
+            class="form-input {% if form.password.errors %}error-input{% endif %}"
+            placeholder="Enter your password"
+            name="{{ form.password.name }}"
+            id="{{ form.password.id_for_label }}"
+            required
+          />
+          {% if form.password.errors %}
+          <div class="error">{{ form.password.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="login-btn" id="loginButton">
+          <span class="login-icon">🔐</span>
+          LOGIN
+        </button>
+      </form>
+
+      <div class="footer-links">
+        <a href="#" class="footer-link forgot-password">Forget password?</a>
+        <a href="{% url 'teacher_register' %}" class="footer-link registration"
+          >Registration now</a
+        >
+      </div>
+    </div>
+
+    <script>
+      // Form submission with loading state
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function () {
+          const button = document.getElementById("loginButton");
+          button.classList.add("loading");
+          button.innerHTML = '<span class="login-icon">🔐</span>LOGGING IN...';
+        });
+
+      // Auto-hide messages after 5 seconds
+      document.addEventListener("DOMContentLoaded", function () {
+        const alerts = document.querySelectorAll(".alert");
+        alerts.forEach(function (alert) {
+          setTimeout(function () {
+            alert.style.opacity = "0";
+            alert.style.transform = "translateY(-10px)";
+            setTimeout(function () {
+              alert.style.display = "none";
+            }, 300);
+          }, 5000);
+        });
+      });
+
+      // Input focus effects
+      const inputs = document.querySelectorAll(".form-input");
+      inputs.forEach((input) => {
+        input.addEventListener("focus", function () {
+          this.parentElement.style.transform = "translateY(-2px)";
+        });
+
+        input.addEventListener("blur", function () {
+          this.parentElement.style.transform = "translateY(0)";
+        });
+      });
+    </script>
+  </body>
+</html>

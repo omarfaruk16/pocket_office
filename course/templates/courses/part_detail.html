@@ -1,0 +1,221 @@
+{% extends 'base.html' %} {% block title %} {{ part.course.name }} - Part {{
+part.name }}{% endblock %} {% block content %}
+<div class="row">
+  <div class="col-12">
+    <h1>{{ part.course.name }} - Part {{ part.name }}</h1>
+    <p class="text-muted">
+      Course Code: {{ part.course.code }} | Teacher: {{ part.teacher }}
+    </p>
+  </div>
+</div>
+
+<!-- Part 1: Action Buttons -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Actions</h5>
+      </div>
+      <div class="card-body">
+        <a href="{% url 'create_class' part.id %}" class="btn btn-primary me-2"
+          >Create New Class</a
+        >
+        <a href="{% url 'create_ct' part.id %}" class="btn btn-success me-2"
+          >Create New CT</a
+        >
+        <a href="{% url 'create_exam' part.id %}" class="btn btn-warning"
+          >Create Exam</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Part 2: Data Table -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Classes, CTs, and Exams</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Number/Name</th>
+              <th>Date</th>
+              <th>Topic</th>
+              <th>Total Marks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for class in classes %}
+            <tr>
+              <td><span class="badge bg-primary">Class</span></td>
+              <td>Class {{ class.class_number }}</td>
+              <td>{{ class.date }}</td>
+              <td>{{ class.topic }}</td>
+              <td>-</td>
+              <td>
+                <a
+                  href="{% url 'edit_class' class.id %}"
+                  class="btn btn-sm btn-outline-primary"
+                  >Edit</a
+                >
+                <a
+                  href="{% url 'delete_class' class.id %}"
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="return confirm('Are you sure?')"
+                  >Delete</a
+                >
+              </td>
+            </tr>
+            {% endfor %} {% for ct in cts %}
+            <tr>
+              <td><span class="badge bg-success">CT</span></td>
+              <td>CT {{ ct.ct_number }}</td>
+              <td>{{ ct.date }}</td>
+              <td>{{ ct.topic }}</td>
+              <td>{{ ct.total_marks }}</td>
+              <td>
+                <a
+                  href="{% url 'edit_ct' ct.id %}"
+                  class="btn btn-sm btn-outline-primary"
+                  >Edit</a
+                >
+                <a
+                  href="{% url 'delete_ct' ct.id %}"
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="return confirm('Are you sure?')"
+                  >Delete</a
+                >
+              </td>
+            </tr>
+            {% endfor %} {% for exam in exams %}
+            <tr>
+              <td><span class="badge bg-warning">Exam</span></td>
+              <td>Semester Exam</td>
+              <td>{{ exam.date }}</td>
+              <td>{{ exam.topic }}</td>
+              <td>{{ exam.total_marks }}</td>
+              <td>
+                <a
+                  href="{% url 'edit_exam' exam.id %}"
+                  class="btn btn-sm btn-outline-primary"
+                  >Edit</a
+                >
+                <a
+                  href="{% url 'delete_exam' exam.id %}"
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="return confirm('Are you sure?')"
+                  >Delete</a
+                >
+              </td>
+            </tr>
+            {% endfor %} {% if not classes and not cts and not exams %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                No data available
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Part 3: Student Overview Table -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Student Attendance and Marks Overview</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Roll Number</th>
+                {# Dynamic Headers for Classes (now in descending order by class number) #}
+                {% for class_obj in classes %} {# 'classes' here is classes_ordered from view #}
+                  <th>Class {{ class_obj.class_number }}</th> 
+                {% endfor %}
+                <th>Total Attended</th>
+                <th>Attendance %</th>
+                {# Dynamic Headers for CTs #}
+                {% for ct_obj in cts %}
+                  <th>CT {{ ct_obj.ct_number }} ({{ ct_obj.total_marks|floatformat:0 }})</th> {# Assumes total_marks exists #}
+                {% endfor %}
+                {# Dynamic Headers for Exams #}
+                {% for exam_obj in exams %}
+                  <th>Semester {{ exam_obj.exam_number }} ({{ exam_obj.total_marks|floatformat:0 }})</th> {# Assumes total_marks exists #}
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+                {# Loop through the sorted list of students #}
+                {% for student, data in sorted_student_data %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.student_id }}</td>
+
+                    {# Class Attendance Details - iterate over the attendance_list #}
+                    {# The attendance_list inside 'data' is now built in descending class_number order to match headers #}
+                    {% for attendance_status in data.attendance.list %}
+                        <td>
+                            {% if attendance_status == 'P' %}
+                            <span class="badge bg-success">P</span>
+                            {% elif attendance_status == 'A' %}
+                            <span class="badge bg-danger">A</span>
+                            {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+
+                    <td>{{ data.attendance.present_count }}</td>
+                    <td>{{ data.attendance.percentage|floatformat:1 }}%</td>
+
+                    {# CT Marks Details #}
+                    {% for ct_mark in data.cts %}
+                    <td>
+                        {% if ct_mark != 'N/A' %}
+                            {{ ct_mark }}
+                        {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+
+                    {# Exam Marks Details #}
+                    {% for exam_mark in data.exams %}
+                    <td>
+                        {% if exam_mark != 'N/A' %}
+                            {{ exam_mark }}
+                        {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="99" class="text-center text-muted"> {# Use a large enough colspan #}
+                        No students found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %} {# Make sure to load static for the default avatar if teacher.picture is not set #}
+
+{% block title %}My Profile{% endblock %}
+{% block active_personal %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles for the profile picture and input-like display */
+    .profile-picture-container {
+        text-align: center;
+        margin-bottom: 30px; /* Space below the picture */
+    }
+
+    .profile-picture {
+        width: 150px; /* Larger size for the circular image */
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover; /* Ensures image covers the area without distortion */
+        border: 4px solid #2ecc71; /* Green border around the picture */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .info-item {
+        margin-bottom: 15px; /* Space between each information item */
+    }
+
+    .info-label {
+        font-weight: 500; /* Slightly bolder label */
+        color: #555; /* Softer color for labels */
+        margin-bottom: 5px; /* Space between label and value */
+        display: block; /* Ensures label is on its own line */
+    }
+
+    /* Form control styling to match previous info-value-box look */
+    .form-control {
+        background-color: #e9f7ef; /* Light green background for the "input" box */
+        border: 1px solid #c8e6c9; /* Subtle border */
+        border-radius: 8px; /* Rounded corners */
+        padding: 12px 15px; /* Padding inside the box */
+        font-size: 1.1rem; /* Slightly larger text */
+        color: #333; /* Darker text for value */
+        width: 100%; /* Full width */
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+    }
+
+    /* Style for file input, if default form-control doesn't work well */
+    input[type="file"].form-control {
+        padding-top: 8px; /* Adjust padding for file input */
+        padding-bottom: 8px;
+    }
+
+
+    h3 {
+        text-align: center;
+        color: black;
+        margin-bottom: 2rem;
+    }
+    .profile-actions {
+        text-align: center; /* Center buttons */
+        margin-top: 20px;
+    }
+    /* Add padding to the card for consistent spacing */
+    .card.shadow {
+        padding: 40px; /* Increased padding */
+    }
+    /* Style for error messages from Django forms */
+    .errorlist {
+        color: #dc3545; /* Bootstrap danger red */
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: 5px;
+        font-size: 0.875em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow p-4 rounded">
+    <h3 class="">Personal Information</h3>
+
+    <div class="profile-picture-container">
+        <img src="{% if teacher.picture %}{{ teacher.picture.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}"
+             alt="Profile Picture" class="profile-picture" id="profileImagePreview">
+        {# Add a hidden input for current image path for JS preview, if needed #}
+        {% if teacher.picture %}
+            <input type="hidden" id="currentProfileImagePath" value="{{ teacher.picture.url }}">
+        {% else %}
+            <input type="hidden" id="currentProfileImagePath" value="{% static 'images/default_avatar.png' %}">
+        {% endif %}
+    </div>
+
+    {# Display Django Messages #}
+    {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="profileEditForm">
+        {% csrf_token %}
+        <div class="row">
+            {# Username (Read-only) #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">Username:</span>
+                {{ form.username }}
+                {% if form.username.errors %}<ul class="errorlist">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            {# Teacher ID (Static - assuming this is not editable by the user) #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">Teacher ID:</span>
+                <div class="info-value-box">{{ teacher.teacher_id|default:"N/A" }}</div>
+            </div>
+        </div>
+
+        <div class="row">
+            {# First Name #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">First Name:</span>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<ul class="errorlist">{% for error in form.first_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            {# Last Name #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">Last Name:</span>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<ul class="errorlist">{% for error in form.last_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            {# Email Address #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">Email Address:</span>
+                {{ form.email }}
+                {% if form.email.errors %}<ul class="errorlist">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            {# Phone #}
+            <div class="col-md-6 info-item">
+                <span class="info-label">Phone:</span>
+                {{ form.phone }}
+                {% if form.phone.errors %}<ul class="errorlist">{% for error in form.phone.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            {# Permanent Address #}
+            <div class="col-md-12 info-item">
+                <span class="info-label">Permanent Address:</span>
+                {{ form.permanent_address }}
+                {% if form.permanent_address.errors %}<ul class="errorlist">{% for error in form.permanent_address.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            {# Picture Upload #}
+            <div class="col-md-12 info-item">
+                <span class="info-label">Profile Picture:</span>
+                {{ form.picture }}
+                {% if form.picture.errors %}<ul class="errorlist">{% for error in form.picture.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                <small class="form-text text-muted">Leave blank to keep current picture. Max file size: 2.5 MB. Allowed formats: JPEG, PNG, GIF.</small>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <button type="submit" class="btn btn-success me-2">Save Changes</button>
+            <a href="{% url 'teacher_profile' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JavaScript for image preview
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileImageInput = document.getElementById('id_picture');
+        const profileImagePreview = document.getElementById('profileImagePreview');
+        const currentProfileImagePath = document.getElementById('currentProfileImagePath').value;
+
+        if (profileImageInput) {
+            profileImageInput.addEventListener('change', function(event) {
+                if (event.target.files && event.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profileImagePreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(event.target.files[0]);
+                } else {
+                    // If no file selected, revert to current or default image
+                    profileImagePreview.src = currentProfileImagePath;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
